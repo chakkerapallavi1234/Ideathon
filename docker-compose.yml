@@ -1,0 +1,25 @@
+version: "3.8"
+services:
+  milvus:
+    image: milvusdb/milvus:v2.3.12
+    container_name: milvus-standalone
+    ports:
+      - "19530:19530"
+      - "9091:9091"
+    environment:
+      TZ: "UTC"
+    command: ["standalone"]
+    restart: unless-stopped
+
+  # Optional local Mongo (you can use Atlas instead)
+  mongo:
+    image: mongo:6.0
+    container_name: mongo-local
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    restart: unless-stopped
+
+volumes:
+  mongo_data:

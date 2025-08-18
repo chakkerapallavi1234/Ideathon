@@ -1,0 +1,49 @@
+# Backend Framework
+fastapi==0.111.0
+uvicorn[standard]==0.30.1
+
+# MongoDB
+pymongo==4.6.3
+
+# Data validation
+pydantic==1.10.14  # avoid breaking changes in pydantic v2
+
+# Vector DB (Milvus)
+pymilvus==2.3.0
+marshmallow==3.19.0
+environs==9.5.0
+
+# LLM (Google Gemini)
+google-generativeai==0.5.4
+protobuf==4.25.3
+
+# Speech-to-Text
+openai-whisper==20231117
+ffmpeg-python==0.2.0
+
+# Task queue
+rq==1.15.1
+redis==5.0.4
+
+# File uploads
+python-multipart==0.0.9
+
+# HTTP requests
+requests==2.32.3
+
+# Env management
+python-dotenv==1.0.1
+
+# UI
+streamlit==1.30.0
+streamlit-webrtc==0.47.0
+
+# Notification Services
+yagmail==0.15.293
+
+# Geocoding
+geopy==2.4.1
+
+# Utils
+numpy==1.26.4
+scikit-learn==1.4.2
