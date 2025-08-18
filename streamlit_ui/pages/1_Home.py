@@ -52,6 +52,34 @@ if st.button("🚨 ACTIVATE PANIC BUTTON 🚨", key="panic_button", help="Click 
 # --- Detailed Alert Triggers ---
 st.header("3. Detailed Alert Triggers")
 
+with st.expander("🎤 Enable Ambient Listening"):
+    st.info("When enabled, the application will listen for distress phrases and automatically trigger an alert.")
+    ambient_listening = st.toggle("Enable Ambient Listening", key="ambient_listening")
+
+    if ambient_listening:
+        st.success("Ambient listening is now active.")
+        webrtc_streamer(
+            key="ambient-listener",
+            mode=WebRtcMode.SENDONLY,
+            audio_receiver_size=1024,
+            media_stream_constraints={"video": False, "audio": True},
+            async_processing=True,
+            audio_frame_callback=lambda frame: asyncio.run(send_audio_chunk(frame))
+        )
+
+async def send_audio_chunk(frame):
+    """Sends a chunk of audio to the backend for analysis."""
+    sound_chunk = np.concatenate([af.to_ndarray() for af in frame])
+    audio_bytes = sound_chunk.tobytes()
+    payload = {
+        "user_id": user_id,
+        "timestamp": datetime.utcnow().isoformat(),
+        "audio_bytes": audio_bytes.hex(),
+        "latitude": lat,
+        "longitude": lon,
+    }
+    requests.post(urljoin(BACKEND_URL, "/distress/listen"), json=payload)
+
 with st.expander("✍️ Send a Text-based Alert"):
     text_message = st.text_area("Enter distress message here:")
     if st.button("Send Text Alert"):

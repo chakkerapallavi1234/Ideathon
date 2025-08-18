@@ -26,8 +26,13 @@ def assess_urgency(user_id: str, transcript: str, audio_events: list, sensor_dat
     user = get_user_by_id(db, user_id) or {}
 
     prompt = f"""
-You are a world-class emergency response dispatcher. Your task is to assess the urgency of a situation based on the provided data.
-Return a JSON object with 'urgency' (float from 0.0 to 1.0), 'reason' (a short, clear explanation), and 'recommended_actions' (a list of strings).
+You are an emergency response dispatcher. Your task is to assess the urgency of a situation based on the provided data.
+Respond ONLY with a valid JSON object. Do not include any other text, explanations, or markdown formatting.
+
+The JSON object must have the following keys:
+- "urgency": a float between 0.0 and 1.0.
+- "reason": a brief explanation for the urgency score.
+- "recommended_actions": a list of strings.
 
 **User Profile:**
 - Name: {user.get('name', 'N/A')}
@@ -39,22 +44,29 @@ Return a JSON object with 'urgency' (float from 0.0 to 1.0), 'reason' (a short, 
 - Detected audio events: {audio_events}
 - Sensor data: {sensor_data}
 
-Analyze all the information and provide your assessment. A transcript mentioning "chest pain" is significantly more urgent if the user has a history of heart conditions.
+Analyze all the information and provide your assessment.
 """
     if genai:
         try:
-            # Using the "text-bison" style interface: adapt based on installed google-generativeai API
-            resp = genai.TextGeneration.create(model="gemini-2.0-pro", input=prompt, max_output_tokens=256)
-            raw = resp.text or resp.output or str(resp)
+            # Using the new GenerativeModel API
+            model = genai.GenerativeModel("gemini-1.5-flash")
+            resp = model.generate_content(prompt)
+            raw = resp.text
             # attempt to parse JSON from LLM answer
             try:
-                # Expecting LLM to output JSON — but may not; best-effort parse
+                # Attempt to parse the entire response as JSON
                 parsed = json.loads(raw)
                 return parsed
-            except Exception:
-                # Fall back to simple heuristic parse
-                return {"urgency": 0.9 if "help" in transcript.lower() or audio_events else 0.2,
-                        "reason": raw[:200], "recommended_actions": ["notify_contacts"]}
+            except json.JSONDecodeError:
+                # If that fails, try to extract a JSON block from the response
+                try:
+                    json_block = raw[raw.find('{') : raw.rfind('}')+1]
+                    parsed = json.loads(json_block)
+                    return parsed
+                except Exception:
+                    # If all else fails, use the heuristic
+                    return {"urgency": 0.9 if "help" in transcript.lower() or audio_events else 0.2,
+                            "reason": f"LLM response parsing failed: {raw[:200]}", "recommended_actions": ["notify_contacts"]}
         except Exception as e:
             return {"urgency": 0.5, "reason": f"gemini_err:{e}", "recommended_actions": []}
     else:

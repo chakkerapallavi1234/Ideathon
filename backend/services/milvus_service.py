@@ -3,23 +3,30 @@ from pymilvus import connections, FieldSchema, CollectionSchema, DataType, Colle
 from backend.config import settings
 import numpy as np
 import logging
+import time
 
 MILVUS_COLLECTION = "incident_embeddings"
 DIM = 1536  # choose embedding dim to match your embedding model
 
 _milvus_connected = False
 
-def get_connection():
-    """Establish a connection to Milvus if one doesn't already exist."""
+def get_connection(retries=3, delay=5):
+    """Establish a connection to Milvus with retry logic."""
     global _milvus_connected
-    if not _milvus_connected:
+    if _milvus_connected:
+        return
+
+    for attempt in range(retries):
         try:
             connections.connect(alias="default", host=settings.MILVUS_HOST, port=settings.MILVUS_PORT)
             _milvus_connected = True
             logging.info("Successfully connected to Milvus.")
+            return
         except Exception as e:
-            logging.error(f"Failed to connect to Milvus: {e}")
-            _milvus_connected = False
+            logging.error(f"Failed to connect to Milvus on attempt {attempt + 1}/{retries}: {e}")
+            if attempt < retries - 1:
+                time.sleep(delay)
+    _milvus_connected = False
 
 def ensure_collection():
     get_connection()
