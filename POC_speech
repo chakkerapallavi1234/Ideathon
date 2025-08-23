@@ -1,0 +1,134 @@
+Introduction:
+
+
+Good [morning/afternoon], everyone. Today, I’m excited to introduce you to Guardian Angel — an AI-powered safety ecosystem designed to protect individuals in their most vulnerable moments.
+
+We live in a world where emergencies don’t come with warnings. Whether it’s a sudden health crisis, a personal safety threat, or an accident, every second counts. Traditional solutions rely on manual calls or simple SOS apps. But here’s the problem:
+
+What if the person can’t speak?
+
+What if they’re in danger and need to be discreet?
+
+What if they’re facing a medical crisis where context matters?
+
+This is exactly where Guardian Angel steps in. It’s not just another SOS app — it’s a personalized, intelligent guardian, built with context awareness, AI-powered insights, and multi-channel alerting."
+
+
+
+Scene 2: User Profiles – Building Context:
+
+
+
+ 
+ "Every powerful system begins with context. Guardian Angel allows each user to build a profile that goes beyond just a name and phone number.
+
+Let’s take our demo user, Pallavi. Her profile includes:
+
+User ID: 123
+
+Name: Pallavi
+
+Phone: 9505375203
+
+Medical History: Let’s say she has a history of heart conditions.
+
+By entering this, Guardian Angel becomes more than an alert system — it becomes personalized intelligence. It knows who you are, and what risks you carry.
+
+And of course, no one is truly safe without a network. That’s why we also add emergency contacts. These are the loved ones, friends, or responders who will be instantly notified when an alert is triggered. Notifications can go out via SMS or Email — ensuring redundancy and reliability.
+
+So now, our user profile is complete: a person with context, supported by a safety net. Let’s see what happens when we put it to the test."
+
+
+
+
+Scene 3: Crisis Simulation – Triggering Alerts::::
+
+
+
+
+"This is our Home page — the command center for the user. Notice how clean and intuitive it is. In an emergency, simplicity is not just a design choice, it’s a life-saving requirement.
+
+Now, let’s walk through the different alerting methods."
+
+
+Step 1: The Panic Button
+
+(Action: Move cursor over the large red ACTIVATE PANIC BUTTON and click it.)
+
+PRESENTER:
+"This is the most direct signal — the Panic Button. One click, and an instant alert is sent. No delays, no ambiguity.
+
+The system immediately recognizes this as a high-priority alert and pushes it to the monitoring dashboard."
+
+Step 2: Text-Based Alerts
+
+(Action: Scroll to Send a Text-based Alert expander.)
+
+PRESENTER:
+"But emergencies aren’t always that straightforward. Sometimes, a user may not be able to press a button — instead, they might type what’s happening.
+
+Here, the user can enter plain text. No code words, no special phrases — just real human language. Let’s simulate that."
+
+(Action: Type "I am having sharp chest pains and I can't breathe." and click Send Text Alert.)
+
+PRESENTER:
+"Now watch closely. The system doesn’t just forward this message — it analyzes it.
+
+Our AI sees:
+
+The keywords: chest pain and shortness of breath.
+
+The user’s medical history: heart condition.
+
+It automatically determines this is a high-severity medical emergency and elevates it in priority. This is context-aware intelligence at work."
+
+Scene 4: The Command Center – Live Alert Monitor
+
+(Action: Switch to the Live Alert Monitor tab. The triggered alerts are visible in the table.)
+
+PRESENTER:
+"Here we are in the Live Alert Monitor. Think of this as the mission control for responders, family members, or security teams.
+
+Every alert raised by a user is displayed here in real time, with clear severity levels."
+
+(Action: Point to the Panic Button alert in the table.)
+"Here’s our Panic Button alert — correctly classified as 🔥 HIGH priority."
+
+(Action: Point to the Chest Pain alert.)
+"And here’s the text alert we just sent. Notice again it’s also 🔥 HIGH, but more importantly, look at the reasoning provided by the AI."
+
+(Action: Highlight the LLM Reason column.)
+
+PRESENTER:
+"It says something like: 'High urgency due to chest pain and shortness of breath, highly correlated with the user’s documented heart condition.'
+
+This is the Guardian Angel difference. It doesn’t just passively forward alerts. It understands context, evaluates severity, and provides actionable insights.
+
+A responder now knows:
+
+The user’s location (via GPS integration).
+
+The exact nature of the emergency.
+
+Relevant medical background.
+
+That’s intelligence you can act on in seconds."
+
+Scene 5: Conclusion – The Future of Safety
+
+(Action: Return to the Guardian Angel logo slide.)
+
+PRESENTER:
+"So, what have we seen today?
+
+A context-rich profile that makes safety personal.
+
+Multi-channel alerts — from panic buttons to free-text AI interpretation.
+
+A live command center that provides instant, actionable intelligence.
+
+This isn’t just an app. This is peace of mind, powered by AI.
+
+Guardian Angel represents the future of personal safety — a world where every individual has an intelligent guardian watching over them, ready to act the second they need help.
+
+Thank you."
