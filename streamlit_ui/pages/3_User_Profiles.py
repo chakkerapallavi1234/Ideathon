@@ -4,7 +4,6 @@ import requests
 import os
 from urllib.parse import urljoin
 import pandas as pd
-from streamlit_geolocation import streamlit_geolocation
 
 st.set_page_config(page_title="Guardian Angel - User Profiles", layout="wide")
 
@@ -14,7 +13,9 @@ st.title("👤 User Profile Management")
 
 # --- User Selection and Creation ---
 st.header("1. Select or Create User")
-user_id = st.text_input("Enter User ID", "user_test_01")
+user_id_input = st.text_input("Enter User ID", "user_test_01")
+# Clean the user_id to remove any potential leading/trailing quotes or whitespace
+user_id = user_id_input.strip().strip("'\"")
 
 # --- Fetch existing user data ---
 user_data = None
@@ -38,10 +39,6 @@ with st.form(key="profile_form"):
     age = st.number_input("Age", min_value=0, max_value=120, value=user_data.get("age", 30) if user_data else 30)
     phone = st.text_input("Phone", value=user_data.get("phone", "") if user_data else "")
     medical_history = st.text_area("Medical History", value=user_data.get("medical_history", "") if user_data else "None")
-
-    st.subheader("Location")
-    location = streamlit_geolocation()
-    st.write(location)
 
     st.subheader("Privacy & Consent")
     consent_data = user_data.get("consent", {}) if user_data else {}
@@ -99,7 +96,7 @@ with st.form(key="profile_form"):
                 })
 
         payload = {
-            "user_id": user_id,
+            "user_id": user_id, # user_id is already cleaned above
             "name": name,
             "email": email,
             "age": age,
@@ -109,18 +106,14 @@ with st.form(key="profile_form"):
             "consent": {
                 "listening": allow_listening,
                 "share_location": share_location
-            },
-            "location": {
-                "latitude": location['latitude'],
-                "longitude": location['longitude']
-            } if location else None
+            }
         }
         try:
             resp = requests.post(urljoin(BACKEND_URL, "/profile/"), json=payload)
             if resp.status_code == 200:
-                st.success("Profile saved successfully!")
+                st.success("Saved the user details successfully!")
                 st.json(resp.json())
-                st.rerun() # Rerun to show the updated data
+                # Removed st.rerun() to keep the success message visible
             else:
                 st.error(f"Error saving profile: {resp.text}")
         except Exception as e:

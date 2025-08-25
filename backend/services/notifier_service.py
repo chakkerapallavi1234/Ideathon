@@ -23,16 +23,19 @@ def send_email_notification(contact: dict, user: dict, incident: dict):
     Sends an SMS notification via an email-to-SMS gateway using yagmail.
     """
     to_email = contact.get("email")
+    logging.info(f"Notifier: send_email_notification - Processing contact: {contact.get('name')}, provided email: {to_email}")
+
     if not to_email:       
-        logging.warning(f"No email address found for contact {contact.get('name')}.")
-        # Fallback to SMS if no email is provided
+        logging.warning(f"Notifier: No email address found for contact {contact.get('name')}. Attempting SMS fallback.")
         phone_number = contact.get("phone")
         carrier = contact.get("carrier", "").lower()
         gateway = CARRIER_GATEWAYS.get(carrier)
         if not gateway:
-            logging.warning(f"Unsupported carrier for contact {contact.get('name')}: {carrier}")
+            logging.warning(f"Notifier: Unsupported carrier for contact {contact.get('name')}: {carrier}. Cannot send SMS.")
             return
         to_email = f"{phone_number}@{gateway}"
+        logging.info(f"Notifier: Falling back to SMS gateway email: {to_email}")
+    
     subject = f"Distress Alert from {user.get('name', 'N/A')}"
     
     lat = incident.get("latitude")
@@ -56,9 +59,14 @@ def send_email_notification(contact: dict, user: dict, incident: dict):
         except Exception as e:
             logging.error(f"Google Geocoding API request failed: {e}")
 
+    severity = incident.get("final_severity", "N/A")
+    llm_reason = (incident.get("llm_response", {}) or {}).get("reason", "")
+
     body = (
         f"Distress alert from {user.get('name', 'N/A')}.\n"
-        f"Message: {incident.get('transcript', 'No transcript available.')}\n\n"
+        f"Message: {incident.get('transcript', 'No transcript available.')}\n"
+        f"Severity: {severity}\n"
+        f"Reason: {llm_reason}\n\n"
         f"--- LOCATION DETAILS ---\n"
         f"Exact Location (Google Maps): {location_url}\n"
     )
@@ -84,7 +92,10 @@ def notify_contacts(incident: dict):
     Fetches user's emergency contacts and sends notifications based on the configured mode.
     """
     db = get_db()
-    user_id = incident.get("user_id")
+    user_id_raw = incident.get("user_id")
+    # Clean the user_id to remove any potential leading/trailing quotes or whitespace
+    user_id = user_id_raw.strip().strip("'\"") if isinstance(user_id_raw, str) else user_id_raw
+    logging.info(f"Notifier: Cleaned user_id from '{user_id_raw}' to '{user_id}'")
     user = get_user_by_id(db, user_id)
 
     if not user:
@@ -92,14 +103,18 @@ def notify_contacts(incident: dict):
         return False
 
     if not user.get("emergency_contacts"):
-        logging.warning(f"User {user_id} has no emergency contacts configured.")
+        logging.warning(f"Notifier: User {user_id} has no emergency contacts configured.")
         return False
 
-    for contact in user["emergency_contacts"]:
+    logging.info(f"Notifier: Processing {len(user['emergency_contacts'])} emergency contacts for user {user_id}.")
+
+    for i, contact in enumerate(user["emergency_contacts"]):
+        contact_name = contact.get("name", f"Contact {i+1}")
+        logging.info(f"Notifier: Attempting to notify contact {i+1}: {contact_name}")
+
         if settings.NOTIFIER_MODE == "email":
             send_email_notification(contact, user, incident)
         else:  # Default to mock/logging
-            contact_name = contact.get("name")
             contact_phone = contact.get("phone")
             lat = incident.get("latitude")
             lon = incident.get("longitude")
@@ -114,6 +129,6 @@ def notify_contacts(incident: dict):
                 f"****************************************************************"
             )
             print(message)
-            logging.info(f"Simulated notification for user {user_id} to contact {contact_name}")
+            logging.info(f"Notifier: Simulated notification for user {user_id} to contact {contact_name}")
 
     return True

@@ -25,12 +25,15 @@ async def analyze_event(event: DistressEventCreate, background_tasks: Background
     if event.audio_bytes:
         transcript = transcribe_audio(event.audio_bytes)
 
+    # Clean the user_id to remove any potential leading/trailing quotes or whitespace
+    clean_user_id = event.user_id.strip().strip("'\"")
+
     # Call LLM to assess urgency
-    llm_resp = assess_urgency(event.user_id, transcript, event.audio_events or [], event.sensor_data or {})
+    llm_resp = assess_urgency(clean_user_id, transcript, event.audio_events or [], event.sensor_data or {})
     severity = llm_resp.get("urgency", 0.0)
 
     incident_doc = {
-        "user_id": event.user_id,
+        "user_id": clean_user_id,
         "timestamp": event.timestamp,
         "transcript": transcript,
         "latitude": event.latitude,
@@ -47,8 +50,9 @@ async def analyze_event(event: DistressEventCreate, background_tasks: Background
     # background upsert to milvus
     background_tasks.add_task(upsert_embedding, str(inserted), transcript)
 
-    # If urgency is high, trigger notification as a background task
-    if severity > 0.7:
+    # Always notify for user-triggered alerts (text/voice), or when severity is high
+    is_user_signal = (event.signal_type in {"text", "voice"}) if hasattr(event, "signal_type") else False
+    if is_user_signal or severity > 0.7:
         background_tasks.add_task(notify_contacts, incident_doc)
 
     return {"incident_id": str(inserted), "severity": severity, "llm": llm_resp}
@@ -60,8 +64,10 @@ async def wearable_trigger(user_id: str, latitude: Optional[float] = None, longi
     A dedicated endpoint for a wearable device's panic button.
     """
     db = get_db()
+    # Clean the user_id to remove any potential leading/trailing whitespace or quotes
+    clean_user_id = user_id.strip().strip("'\"")
     incident_doc = {
-        "user_id": user_id,
+        "user_id": clean_user_id,
         "timestamp": datetime.utcnow(),
         "transcript": "WEARABLE PANIC BUTTON ACTIVATED",
         "latitude": latitude,
@@ -80,8 +86,10 @@ async def fall_detection(user_id: str, latitude: Optional[float] = None, longitu
     Endpoint for fall detection from a wearable device.
     """
     db = get_db()
+    # Clean the user_id to remove any potential leading/trailing quotes or whitespace
+    clean_user_id = user_id.strip().strip("'\"")
     incident_doc = {
-        "user_id": user_id,
+        "user_id": clean_user_id,
         "timestamp": datetime.utcnow(),
         "transcript": "FALL DETECTED BY WEARABLE DEVICE",
         "latitude": latitude,
@@ -109,8 +117,10 @@ async def listen_for_distress(event: DistressEventCreate):
         if phrase in transcript:
             # If a distress phrase is found, create a high-severity incident
             db = get_db()
+            # Clean the user_id to remove any potential leading/trailing quotes or whitespace
+            clean_user_id = event.user_id.strip().strip("'\"")
             incident_doc = {
-                "user_id": event.user_id,
+                "user_id": clean_user_id,
                 "timestamp": datetime.utcnow(),
                 "transcript": f"DISTRESS PHRASE DETECTED: '{transcript}'",
                 "latitude": event.latitude,
@@ -132,8 +142,10 @@ async def panic_button(user_id: str, latitude: Optional[float] = None, longitude
     Immediately triggers a high-severity alert.
     """
     db = get_db()
+    # Clean the user_id to remove any potential leading/trailing quotes or whitespace
+    clean_user_id = user_id.strip().strip("'\"")
     incident_doc = {
-        "user_id": user_id,
+        "user_id": clean_user_id,
         "timestamp": datetime.utcnow(),
         "transcript": "PANIC BUTTON ACTIVATED",
         "latitude": latitude,
@@ -164,8 +176,10 @@ async def sms_trigger(event: DistressEventCreate, background_tasks: BackgroundTa
     # Check for safety phrase
     for phrase in DISTRESS_PHRASES:
         if phrase in transcript:
+            # Clean the user_id to remove any potential leading/trailing quotes or whitespace
+            clean_user_id = event.user_id.strip().strip("'\"")
             incident_doc = {
-                "user_id": event.user_id,
+                "user_id": clean_user_id,
                 "timestamp": datetime.utcnow(),
                 "transcript": f"SMS TRIGGER (SAFETY PHRASE): '{transcript}'",
                 "latitude": event.latitude,
@@ -178,11 +192,13 @@ async def sms_trigger(event: DistressEventCreate, background_tasks: BackgroundTa
             return {"status": "distress_detected", "incident_id": str(inserted)}
 
     # If no safety phrase, use LLM to assess urgency
-    llm_resp = assess_urgency(event.user_id, transcript, [], {})
+    # Clean the user_id to remove any potential leading/trailing quotes or whitespace
+    clean_user_id = event.user_id.strip().strip("'\"")
+    llm_resp = assess_urgency(clean_user_id, transcript, [], {})
     severity = llm_resp.get("urgency", 0.0)
 
     incident_doc = {
-        "user_id": event.user_id,
+        "user_id": clean_user_id,
         "timestamp": event.timestamp,
         "transcript": f"SMS TRIGGER (ANALYSIS): '{transcript}'",
         "latitude": event.latitude,
@@ -194,7 +210,9 @@ async def sms_trigger(event: DistressEventCreate, background_tasks: BackgroundTa
 
     inserted = insert_incident(db, incident_doc)
 
-    if severity > 0.7:
+    # Always notify for user-triggered alerts (text/voice), or when severity is high
+    is_user_signal = (event.signal_type in {"text", "voice"}) if hasattr(event, "signal_type") else False
+    if is_user_signal or severity > 0.7:
         background_tasks.add_task(notify_contacts, incident_doc)
 
     return {"incident_id": str(inserted), "severity": severity, "llm": llm_resp}

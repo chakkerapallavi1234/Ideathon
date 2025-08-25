@@ -15,7 +15,7 @@ if st.sidebar.button("Refresh incidents"):
 
 st.header("Recent Incidents")
 try:
-    resp = requests.get(urljoin(BACKEND_URL, "/incidents"))
+    resp = requests.get(urljoin(BACKEND_URL, "/alerts")) # Changed from /incidents to /alerts
     incidents = resp.json() if resp.status_code == 200 else []
 except Exception:
     incidents = []
@@ -24,7 +24,8 @@ except Exception:
 if incidents:
     import pandas as pd
     rows = []
-    for inc in incidents:
+    # Display only the last 10 incidents
+    for inc in incidents[:10]: # Limit to the first 10 incidents from the fetched list
         rows.append({
             "incident_id": inc.get("_id", {}).get("$oid") if isinstance(inc.get("_id"), dict) else inc.get("_id"),
             "user_id": inc.get("user_id"),
